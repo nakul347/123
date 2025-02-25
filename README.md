@@ -1,24 +1,64 @@
-from flask import Flask, render_template, request, jsonify
+#include <stdio.h>
+#include <string.h>
 
-app = Flask(__name__)
-feedbacks = []
+#define MAX_FEEDBACKS 100
+#define MAX_LENGTH 255
 
-@app.route('/')
-def home():
-    return render_template("index.html")
+typedef struct {
+    char name[MAX_LENGTH];
+    char feedback[MAX_LENGTH];
+} Feedback;
 
-@app.route('/submit', methods=['POST'])
-def submit_feedback():
-    name = request.form.get("name")
-    feedback = request.form.get("feedback")
-    if name and feedback:
-        feedbacks.append({"name": name, "feedback": feedback})
-        return jsonify({"message": "Thank you for your review!"})
-    return jsonify({"error": "Please enter all fields."})
+Feedback feedbacks[MAX_FEEDBACKS];
+int feedbackCount = 0;
 
-@app.route('/feedbacks', methods=['GET'])
-def get_feedbacks():
-    return jsonify(feedbacks)
+void submitFeedback(char name[], char feedback[]) {
+    if (strlen(name) > 0 && strlen(feedback) > 0 && feedbackCount < MAX_FEEDBACKS) {
+        strcpy(feedbacks[feedbackCount].name, name);
+        strcpy(feedbacks[feedbackCount].feedback, feedback);
+        feedbackCount++;
+        printf("Thank you for your review!\n");
+    } else {
+        printf("Invalid input or storage full.\n");
+    }
+}
 
-if __name__ == '__main__':
-    app.run(debug=True)
+void viewFeedback() {
+    printf("\nAll Feedback:\n");
+    for (int i = 0; i < feedbackCount; i++) {
+        printf("%d. %s: %s\n", i + 1, feedbacks[i].name, feedbacks[i].feedback);
+    }
+}
+
+int main() {
+    char name[MAX_LENGTH];
+    char feedback[MAX_LENGTH];
+    char choice;
+
+    while (1) {
+        printf("\nEnter your name: ");
+        fgets(name, MAX_LENGTH, stdin);
+        name[strcspn(name, "\n")] = 0;
+        
+        if (strcmp(name, "8888") == 0) {
+            viewFeedback();
+            continue;
+        }
+        
+        printf("Enter your feedback: ");
+        fgets(feedback, MAX_LENGTH, stdin);
+        feedback[strcspn(feedback, "\n")] = 0;
+
+        submitFeedback(name, feedback);
+        
+        printf("\nDo you want to submit another feedback? (y/n): ");
+        scanf(" %c", &choice);
+        getchar(); // Clear buffer
+        
+        if (choice == 'n' || choice == 'N') {
+            break;
+        }
+    }
+
+    return 0;
+}
